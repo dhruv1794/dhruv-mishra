@@ -1,0 +1,200 @@
+#include<SoftwareSerial.h>
+#include<LiquidCrystal.h>
+LiquidCrystal lcd(6, 7, 5, 4, 3, 2);
+SoftwareSerial mySerial(9,10);
+int xPin=0;//Connect x pin of adxl335 to pin A0
+int yPin=1;//Connect y pin of adxl335 to pin A1
+int zPin=2;//Connect z pin of adxl335 to pin A2
+
+
+int led=13;
+int relay1=2;
+int relay2=3;
+int relay3=4;
+int relay4=5;
+int read_count=0;
+int j=0,k=0, temp; // Variables to iterate in for loops
+char data_temp, RFID_data[12];
+char Saved_Tags[3][12]={
+                       {'0','0','0','9','6','C','0','2','4','7','B'}};
+boolean tag_check,tag_status,entry_control;
+
+void setup()
+{
+mySerial.begin(9600);
+Serial.begin(9600);
+lcd.begin(16, 2); 
+ pinMode(led, OUTPUT);
+ pinMode(relay1, OUTPUT);
+ digitalWrite(relay1, LOW);
+ pinMode(relay2, OUTPUT);
+ digitalWrite(relay2, LOW);
+ pinMode(relay3, OUTPUT);
+ digitalWrite(relay3, LOW);
+ pinMode(relay4, OUTPUT);
+ digitalWrite(relay4, LOW);
+}
+
+void loop()
+{
+  if(temp==2)
+    {
+          MemsData();
+    }
+RecieveData();
+CheckData();
+AccessCheck();
+}
+
+
+
+void RecieveData()
+{
+lcd.setCursor(0,0);
+lcd.print("Swipe Your Card");
+if(mySerial.available()>0)
+{
+data_temp=mySerial.read();
+RFID_data[read_count]=data_temp;
+read_count++;
+}}
+
+void CheckData()
+{
+if(read_count==12)
+{
+entry_control=true;  
+for(k=0;k<3;k++)
+{
+for(j=0;j<12;j++)
+{
+  if(Saved_Tags[k][j]==RFID_data[j])
+ {
+  tag_check=true;
+  }
+  else
+  {
+  tag_check=false;
+  break;
+  }
+}
+if(tag_check==true)
+{
+tag_status=true;
+}}
+read_count=0;
+}}
+
+void AccessCheck()
+{
+if(entry_control==true)
+{
+if(tag_status==true)
+{
+  lcd.clear();
+  delay(100);
+lcd.setCursor(0,1);  
+lcd.print("MEMS MODE");
+ temp=1;
+}
+else
+{
+lcd.clear();
+delay(100);
+lcd.setCursor(0,1);
+lcd.print("Access Denied");
+}
+entry_control=false;
+tag_status=false;
+}}
+
+void MemsData()
+{
+  int xval=analogRead(xPin);
+  int yval=analogRead(yPin);
+  int zval=analogRead(zPin);
+
+Serial.print("xval=");
+  Serial.println(xval);//Use xval to determine threshold for different directions
+  
+  Serial.print("yval=");
+  Serial.println(yval); //Use yval to determine threshold for different directions
+
+   Serial.print("zval=");
+  Serial.println(zval); //Use zval to determine threshold for different directions
+  
+  delay(2000); //used to display values after 2s delay
+  
+  Serial.print("\n");//print after 2s in a new line
+  
+ if((xval>280&&xval<340)&&(yval>360&&yval<390)&&(zval>400&&zval<460))
+{
+ Serial.print("mems front"); 
+delay( 2000);
+Serial.print("\n");//print after 2s in a new line
+digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      digitalWrite(relay1, HIGH);
+      digitalWrite(relay2, LOW);
+      digitalWrite(relay3, LOW);
+      digitalWrite(relay4, LOW);
+}  
+ if((xval>420&&xval<470)&&(yval>300&&yval<400)&&(zval>380&&zval<450))
+{
+ Serial.print("mems Back"); 
+delay( 2000);
+Serial.print("\n");//print after 2s in a new line
+digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      digitalWrite(relay2, HIGH);
+      digitalWrite(relay1, LOW);
+      digitalWrite(relay3, LOW);
+      digitalWrite(relay4, LOW);
+      
+}
+  if((xval>330&&xval<380)&&(yval>270&&yval<350)&&(zval>360&&zval<460))
+{
+ Serial.print("mems left"); 
+delay( 2000);
+Serial.print("\n");//print after 2s in a new line
+digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      digitalWrite(relay1, LOW);
+      digitalWrite(relay2, LOW);
+      digitalWrite(relay3, HIGH);
+      digitalWrite(relay4, LOW);
+      
+}
+ if((xval>360&&xval<400)&&(yval>300&&yval<470)&&(zval>380&&zval<430))
+{
+ Serial.print("mems right"); 
+delay( 2000);
+Serial.print("\n");//print after 2s in a new line
+digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      digitalWrite(relay1, LOW);
+      digitalWrite(relay2, LOW);
+      digitalWrite(relay3, LOW);
+      digitalWrite(relay4, HIGH);
+      
+}
+if((xval>370&&xval<490)&&(yval>300&&yval<400)&&(zval>400&&zval<490))
+{
+ Serial.print("mems normal"); 
+delay( 2000);
+Serial.print("\n");//print after 2s in a new line
+digitalWrite(led, HIGH);
+      delay(1000);
+      digitalWrite(led, LOW);
+      digitalWrite(relay1, LOW);
+      digitalWrite(relay2, LOW);
+      digitalWrite(relay3, LOW);
+      digitalWrite(relay4, LOW);
+      
+      
+}
+}
